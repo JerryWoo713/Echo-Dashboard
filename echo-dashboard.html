@@ -677,12 +677,12 @@
                 { time: '01:12 UTC', action: 'Defined partnership goals - passive income focus' }
             ],
             deliverables: [
-                { icon: '📊', title: 'Echo Dashboard v3', type: 'HTML' },
-                { icon: '🎬', title: 'Day in the Life Video', type: 'Filming Monday' },
-                { icon: '📝', title: 'HVAC Channel Research', type: 'PDF' },
-                { icon: '📋', title: 'Video Script Outline', type: 'Doc' }
+                { icon: '📊', title: 'Echo Dashboard v3', type: 'HTML', url: 'https://echoswoodashboard.netlify.app/echo-dashboard.html' },
+                { icon: '🎬', title: 'Day in the Life Video', type: 'Folder', url: 'https://drive.google.com/drive/folders/1Y34Dxg_sAZ5oeILbFT0fUKM202mJ-AM4' },
+                { icon: '📝', title: 'HVAC Channel Research', type: 'Folder', url: 'https://drive.google.com/drive/folders/1Y34Dxg_sAZ5oeILbFT0fUKM202mJ-AM4' },
+                { icon: '📋', title: 'Video Script Outline', type: 'Folder', url: 'https://drive.google.com/drive/folders/1Y34Dxg_sAZ5oeILbFT0fUKM202mJ-AM4' }
             ],
-            driveLink: 'https://drive.google.com/drive/folders/1Y34Dxg_sAZ5oeILbFT0fUKM202mJ-AM4'
+            driveLink: 'https://drive.google.com/drive/folders/1Y34Dxg_sAZ5oeILbFT0fUKM202mJ-AM4?usp=drive_link'
         };
 
         function loadData() {
@@ -748,7 +748,7 @@
             `).join('');
 
             document.getElementById('deliverables').innerHTML = data.deliverables.map(d => `
-                <div class="deliverable-item" onclick="alert('Open: ${d.title}')">
+                <div class="deliverable-item" onclick="window.open('${d.url || data.driveLink}', '_blank')">
                     <span class="deliverable-icon">${d.icon}</span>
                     <div class="deliverable-info">
                         <div class="title">${d.title}</div>
