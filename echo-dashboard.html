@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        /* Animated background */
+        .bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 70%);
+        }
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 25px 35px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #00ff88, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .echo-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .echo-status:hover {
+            background: rgba(0, 255, 136, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+        }
+        .echo-status.idle {
+            background: rgba(255, 68, 68, 0.05);
+            border-color: rgba(255, 68, 68, 0.15);
+        }
+        .echo-status.idle:hover {
+            background: rgba(255, 68, 68, 0.1);
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.2);
+        }
+        .echo-avatar {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .echo-avatar .emoji {
+            font-size: 36px;
+            z-index: 2;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5));
+        }
+        .echo-status.idle .echo-avatar .emoji {
+            filter: drop-shadow(0 0 10px rgba(255, 68, 68, 0.5));
+        }
+        .echo-avatar::before {
+            content: '';
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #00ff88;
+            animation: spin 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .echo-status.idle .echo-avatar::before {
+            border-top-color: #ff4444;
+            animation: spin 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .echo-avatar::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-bottom-color: #00d4ff;
+            animation: spin 2s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse;
+            opacity: 0.6;
+        }
+        .echo-status.idle .echo-avatar::after {
+            border-bottom-color: #ff4444;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .echo-info .name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .echo-info .state {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #00ff88;
+        }
+        .echo-status.idle .echo-info .state {
+            color: #ff4444;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 380px 1fr 320px;
+            gap: 25px;
+        }
+        @media (max-width: 1300px) {
+            .grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 28px;
+            backdrop-filter: blur(10px);
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .panel-header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #888;
+        }
+        .panel-header .icon {
+            font-size: 20px;
+        }
+        .current-task {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 212, 255, 0.05));
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .current-task .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        .current-task .task {
+            font-size: 20px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .sub-agents {
+            margin-top: 15px;
+        }
+        .sub-agent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .sub-agent-item:last-child { border-bottom: none; }
+        .sub-agent-item .name {
+            font-size: 14px;
+        }
+        .sub-agent-item .status {
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            font-weight: 500;
+        }
+        .kanban {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+        @media (max-width: 700px) {
+            .kanban { grid-template-columns: 1fr; }
+        }
+        .kanban-col {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .kanban-col h3 {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .kanban-col.todo h3 { color: #f39c12; border-bottom: 2px solid rgba(243, 156, 18, 0.3); }
+        .kanban-col.inprogress h3 { color: #3498db; border-bottom: 2px solid rgba(52, 152, 219, 0.3); }
+        .kanban-col.done h3 { color: #00ff88; border-bottom: 2px solid rgba(0, 255, 136, 0.3); }
+        .task-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .task-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .task-card .title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .task-card .meta {
+            font-size: 11px;
+            color: #666;
+        }
+        .add-btn {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .add-btn:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+        .activity-log {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+        .activity-log::-webkit-scrollbar { width: 6px; }
+        .activity-log::-webkit-scrollbar-track { background: transparent; }
+        .activity-log::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+        .log-item {
+            display: flex;
+            gap: 18px;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .log-item:last-child { border-bottom: none; }
+        .log-item .time {
+            font-size: 11px;
+            color: #555;
+            white-space: nowrap;
+            min-width: 90px;
+            padding-top: 2px;
+        }
+        .log-item .action {
+            font-size: 14px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+        .deliverables {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .deliverable-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #e0e0e0;
+            transition: all 0.3s;
+        }
+        .deliverable-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        .deliverable-icon {
+            font-size: 26px;
+        }
+        .deliverable-info {
+            flex: 1;
+        }
+        .deliverable-info .title {
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .deliverable-info .type {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+        .drive-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(66, 133, 244, 0.05);
+            border: 1px solid rgba(66, 133, 244, 0.1);
+            border-radius: 14px;
+        }
+        .drive-section .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #4285f4;
+            margin-bottom: 12px;
+        }
+        .drive-section input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .drive-section input:focus {
+            outline: none;
+            border-color: #4285f4;
+            box-shadow: 0 0 20px rgba(66, 133, 244, 0.1);
+        }
+        .drive-section button {
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #4285f4, #3367d6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .drive-section button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(66, 133, 244, 0.3);
+        }
+        .reset-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.2);
+            border-radius: 8px;
+            color: #ff4444;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .reset-btn:hover {
+            background: rgba(255, 68, 68, 0.2);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: linear-gradient(145deg, #1a1a28, #161625);
+            padding: 35px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 480px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .modal-content h3 {
+            font-size: 22px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        .modal-content input:focus,
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+        .modal-content textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .btn-primary {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #00d4ff, #00b4db);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        }
+        .btn-secondary {
+            padding: 14px 28px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <h1>⚡ Echo</h1>
+            </div>
+            <div class="echo-status" id="echoStatus" onclick="toggleStatus()">
+                <div class="echo-avatar">
+                    <span class="emoji">😎</span>
+                </div>
+                <div class="echo-info">
+                    <div class="name">Echo</div>
+                    <div class="state" id="echoState">Working</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Status Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="icon">⚡</span>
+                    <h2>Status</h2>
+                </div>
+                <div class="current-task">
+                    <div class="label">Current Task</div>
+                    <div class="task" id="currentTask">Building Dashboard</div>
+                </div>
+                <div class="sub-agents" id="subAgents">
+                    <div class="sub-agent-item">
+                        <span class="name">Active Sub-Agents</span>
+                        <span class="status">None</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kanban Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="icon">📋</span>
+                    <h2>Tasks</h2>
+                </div>
+                <div class="kanban">
+                    <div class="kanban-col todo">
+                        <h3>To Do</h3>
+                        <div id="todoTasks"></div>
+                        <button class="add-btn" onclick="openTaskModal('todo')">+ Add Task</button>
+                    </div>
+                    <div class="kanban-col inprogress">
+                        <h3>In Progress</h3>
+                        <div id="inprogressTasks"></div>
+                        <button class="add-btn" onclick="openTaskModal('inprogress')">+ Add Task</button>
+                    </div>
+                    <div class="kanban-col done">
+                        <h3>Done</h3>
+                        <div id="doneTasks"></div>
+                        <button class="add-btn" onclick="openTaskModal('done')">+ Add Task</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="icon">📜</span>
+                    <h2>Activity</h2>
+                </div>
+                <div class="activity-log" id="activityLog"></div>
+            </div>
+
+            <!-- Deliverables Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="icon">📁</span>
+                    <h2>Deliverables</h2>
+                </div>
+                <div class="deliverables" id="deliverables"></div>
+            </div>
+
+            <!-- Research Notes Panel -->
+            <div class="panel" style="grid-column: 1 / -1;">
+                <div class="panel-header">
+                    <span class="icon">🔬</span>
+                    <h2>HVAC YouTube Research</h2>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(0,255,136,0.2);">
+                        <h4 style="color: #00ff88; margin-bottom: 12px;">Top 5 Channels to Study</h4>
+                        <ul style="font-size: 13px; line-height: 1.8; color: #aaa;">
+                            <li><strong>HVAC PRO BLOG</strong> — Practical career advice</li>
+                            <li><strong>HVAC School</strong> — 300K subs, troubleshooting focus</li>
+                            <li><strong>Misfits of HVAC</strong> — Podcast-style entertainment</li>
+                            <li><strong>HVAC Know It All</strong> — Product reviews + career</li>
+                            <li><strong>HVAC Boss</strong> — Business + day-in-the-life</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(0,212,255,0.2);">
+                        <h4 style="color: #00d4ff; margin-bottom: 12px;">Your Unique Angle</h4>
+                        <ul style="font-size: 13px; line-height: 1.8; color: #aaa;">
+                            <li><strong>Industrial/Refinery HVAC</strong> — Different from residential</li>
+                            <li><strong>Safety-focused content</strong> — Higher standards</li>
+                            <li><strong>Career storytelling</strong> — "8 years in refineries"</li>
+                            <li><strong>Technical depth</strong> — Complex systems</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(139,92,246,0.2);">
+                        <h4 style="color: #8b5cf6; margin-bottom: 12px;">Content Patterns That Work</h4>
+                        <ul style="font-size: 13px; line-height: 1.8; color: #aaa;">
+                            <li>Bold thumbnails with faces + contrast</li>
+                            <li>Problem-solving titles ("How to fix X")</li>
+                            <li>Specific, not generic content</li>
+                            <li>Real personality + authentic experience</li>
+                            <li>Consistent upload schedule</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drive Section -->
+            <div class="panel" style="grid-column: 1 / -1;">
+                <div class="panel-header">
+                    <span class="icon">☁️</span>
+                    <h2>Cloud Storage</h2>
+                </div>
+                <div class="drive-section">
+                    <div class="label">Google Drive Folder</div>
+                    <input type="text" id="driveLink" placeholder="Paste your Google Drive folder link here...">
+                    <button onclick="saveDriveLink()">Save Link</button>
+                    <button class="reset-btn" onclick="resetData()">🔄 Reset All Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add Task</h3>
+            <input type="text" id="taskTitle" placeholder="Task title">
+            <textarea id="taskDesc" placeholder="Description (optional)"></textarea>
+            <input type="hidden" id="taskCol">
+            <input type="hidden" id="taskIndex">
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="saveTask()">Save</button>
+                <button class="btn-secondary" onclick="closeTaskModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data store
+        let data = {
+            version: 3,
+            currentTask: 'Planning first HVAC video content',
+            subAgents: [],
+            echoStatus: 'working',
+            tasks: {
+                todo: [
+                    { title: 'Bible study app research', desc: 'Find gaps in the market', date: '2026-02-01' }
+                ],
+                inprogress: [
+                    { title: 'Plan first video', desc: 'Script and outline for debut HVAC video', date: '2026-02-01' }
+                ],
+                done: [
+                    { title: 'Research HVAC YouTubers', desc: 'Study top 5 channels for content ideas', date: '2026-02-01' },
+                    { title: 'Build Dashboard', desc: 'Complete UI with all features', date: '2026-02-01' },
+                    { title: 'Initial conversation', desc: 'Set up partnership', date: '2026-01-31' }
+                ]
+            },
+            activities: [
+                { time: '03:06 UTC', action: 'Completed HVAC YouTube research - 5 top channels analyzed' },
+                { time: '01:57 UTC', action: 'Dashboard v3 sent to Ed - cooler design' },
+                { time: '01:32 UTC', action: 'Dashboard v2 sent to Ed - cleaner design' },
+                { time: '01:26 UTC', action: 'Started building Dashboard' },
+                { time: '01:12 UTC', action: 'Defined partnership goals - passive income focus' }
+            ],
+            deliverables: [
+                { icon: '📊', title: 'Echo Dashboard v3', type: 'HTML' },
+                { icon: '📝', title: 'HVAC Channel Research', type: 'PDF' },
+                { icon: '🎬', title: 'Content Strategy', type: 'Doc' }
+            ],
+            driveLink: ''
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem('echoDashboard');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Only use saved data if it's the current version
+                if (parsed.version === 3) {
+                    data = parsed;
+                }
+            }
+            render();
+        }
+
+        function saveData() {
+            data.version = 3;
+            localStorage.setItem('echoDashboard', JSON.stringify(data));
+        }
+
+        function render() {
+            document.getElementById('currentTask').textContent = data.currentTask;
+
+            const status = document.getElementById('echoStatus');
+            const state = document.getElementById('echoState');
+            if (data.echoStatus === 'idle') {
+                status.classList.add('idle');
+                state.textContent = 'Idle';
+            } else {
+                status.classList.remove('idle');
+                state.textContent = 'Working';
+            }
+
+            const saContainer = document.getElementById('subAgents');
+            if (data.subAgents.length === 0) {
+                saContainer.innerHTML = `<div class="sub-agent-item">
+                    <span class="name">Active Sub-Agents</span>
+                    <span class="status">None</span>
+                </div>`;
+            } else {
+                saContainer.innerHTML = data.subAgents.map(sa => `
+                    <div class="sub-agent-item">
+                        <span class="name">${sa.name}</span>
+                        <span class="status">${sa.status}</span>
+                    </div>
+                `).join('');
+            }
+
+            ['todo', 'inprogress', 'done'].forEach(col => {
+                const container = document.getElementById(col + 'Tasks');
+                container.innerHTML = data.tasks[col].map((t, i) => `
+                    <div class="task-card" onclick="editTask('${col}', ${i})">
+                        <div class="title">${t.title}</div>
+                        <div class="meta">${t.date}</div>
+                    </div>
+                `).join('');
+            });
+
+            document.getElementById('activityLog').innerHTML = data.activities.map(a => `
+                <div class="log-item">
+                    <span class="time">${a.time}</span>
+                    <span class="action">${a.action}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('deliverables').innerHTML = data.deliverables.map(d => `
+                <div class="deliverable-item" onclick="alert('Open: ${d.title}')">
+                    <span class="deliverable-icon">${d.icon}</span>
+                    <div class="deliverable-info">
+                        <div class="title">${d.title}</div>
+                        <div class="type">${d.type}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('driveLink').value = data.driveLink || '';
+        }
+
+        function toggleStatus() {
+            if (data.echoStatus === 'working') {
+                data.echoStatus = 'idle';
+            } else {
+                data.echoStatus = 'working';
+            }
+            data.subAgents = [];
+            saveData();
+            render();
+        }
+
+        function openTaskModal(col) {
+            document.getElementById('modalTitle').textContent = 'Add Task';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDesc').value = '';
+            document.getElementById('taskCol').value = col;
+            document.getElementById('taskIndex').value = '';
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        function editTask(col, index) {
+            const task = data.tasks[col][index];
+            document.getElementById('modalTitle').textContent = 'Edit Task';
+            document.getElementById('taskTitle').value = task.title;
+            document.getElementById('taskDesc').value = task.desc || '';
+            document.getElementById('taskCol').value = col;
+            document.getElementById('taskIndex').value = index;
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('active');
+        }
+
+        function saveTask() {
+            const col = document.getElementById('taskCol').value;
+            const index = document.getElementById('taskIndex').value;
+            const title = document.getElementById('taskTitle').value;
+            const desc = document.getElementById('taskDesc').value;
+
+            if (!title) return;
+
+            const today = new Date().toISOString().split('T')[0];
+
+            if (index !== '') {
+                data.tasks[col][index] = { title, desc, date: today };
+            } else {
+                data.tasks[col].push({ title, desc, date: today });
+                addActivity(`Added task: ${title}`);
+            }
+
+            saveData();
+            render();
+            closeTaskModal();
+        }
+
+        function addActivity(action) {
+            const time = new Date().toISOString().slice(11, 19) + ' UTC';
+            data.activities.unshift({ time, action });
+            saveData();
+            render();
+        }
+
+        function saveDriveLink() {
+            data.driveLink = document.getElementById('driveLink').value;
+            saveData();
+            alert('Google Drive link saved!');
+        }
+
+        function resetData() {
+            if (confirm('Reset all data to defaults? This will clear all tasks and activities.')) {
+                localStorage.removeItem('echoDashboard');
+                location.reload();
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
