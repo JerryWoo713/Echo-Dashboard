@@ -652,15 +652,16 @@
         // Data store
         let data = {
             version: 3,
-            currentTask: 'Planning first HVAC video content',
+            currentTask: 'Filming Day in the Life video - Monday',
             subAgents: [],
             echoStatus: 'working',
             tasks: {
                 todo: [
-                    { title: 'Bible study app research', desc: 'Find gaps in the market', date: '2026-02-01' }
+                    { title: 'Bible study app research', desc: 'Find gaps in the market', date: '2026-02-01' },
+                    { title: 'Prepare filming checklist', desc: 'Shot list for Monday', date: '2026-02-01' }
                 ],
                 inprogress: [
-                    { title: 'Plan first video', desc: 'Script and outline for debut HVAC video', date: '2026-02-01' }
+                    { title: 'Filming Day in the Life', desc: 'Film Monday Feb 3rd - reminder at 6:30am', date: '2026-02-01' }
                 ],
                 done: [
                     { title: 'Research HVAC YouTubers', desc: 'Study top 5 channels for content ideas', date: '2026-02-01' },
@@ -669,16 +670,17 @@
                 ]
             },
             activities: [
+                { time: '04:52 UTC', action: 'Video plan confirmed - Day in the Life, filming Monday' },
+                { time: '04:47 UTC', action: 'Dashboard live at https://jerrywoo713.github.io/Echo-Dashboard/' },
                 { time: '03:06 UTC', action: 'Completed HVAC YouTube research - 5 top channels analyzed' },
                 { time: '01:57 UTC', action: 'Dashboard v3 sent to Ed - cooler design' },
-                { time: '01:32 UTC', action: 'Dashboard v2 sent to Ed - cleaner design' },
-                { time: '01:26 UTC', action: 'Started building Dashboard' },
                 { time: '01:12 UTC', action: 'Defined partnership goals - passive income focus' }
             ],
             deliverables: [
                 { icon: '📊', title: 'Echo Dashboard v3', type: 'HTML' },
+                { icon: '🎬', title: 'Day in the Life Video', type: 'Filming Monday' },
                 { icon: '📝', title: 'HVAC Channel Research', type: 'PDF' },
-                { icon: '🎬', title: 'Content Strategy', type: 'Doc' }
+                { icon: '📋', title: 'Video Script Outline', type: 'Doc' }
             ],
             driveLink: ''
         };
